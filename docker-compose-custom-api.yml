@@ -1,0 +1,255 @@
+services:
+  avr-core:
+    image: agentvoiceresponse/avr-core
+    platform: linux/x86_64
+    container_name: avr-core
+    restart: always
+    environment:
+      # Basic Configuration
+      - PORT=5001 
+      - ASR_URL=http://avr-asr-google-cloud-speech:6001/speech-to-text-stream
+      - LLM_URL=http://avr-llm-proxy:6017/prompt-stream
+      - TTS_URL=http://avr-tts-google-cloud-tts:6003/text-to-speech-stream
+      
+      # System Message
+      - SYSTEM_MESSAGE=${SYSTEM_MESSAGE:-"Hola, ¿cómo puedo ayudarte hoy?"}
+      
+      # Listening Configuration - Optimized for fluidity
+      - INTERRUPT_LISTENING=true
+      - LISTENING_START_DELAY=100
+      - LISTENING_END_DELAY=300
+      
+      # Timeout Configuration - Fast response
+      - SESSION_TIMEOUT=600
+      - VOICE_ACTIVITY_TIMEOUT=800
+      - RESPONSE_TIMEOUT=5000
+      - LLM_TIMEOUT=10000
+      
+      # Ambient Noise - Better audio quality
+      #- AMBIENT_NOISE_FILE=ambient_sounds/office_background.raw
+      #- AMBIENT_NOISE_LEVEL=0.50
+      
+      # Audio Processing
+      - AUDIO_CHUNK_SIZE=1600
+      - AUDIO_SAMPLE_RATE=8000
+      - AUDIO_ENCODING=LINEAR16
+      
+      # Streaming Configuration
+      - ENABLE_STREAMING=true
+      - STREAMING_BUFFER_SIZE=6400
+      - STREAMING_LATENCY=50
+      
+      # Interruption Detection
+      - INTERRUPTION_ENABLED=true
+      - INTERRUPTION_THRESHOLD=0.5
+      - INTERRUPTION_MIN_DURATION=200
+      
+      # LLM Response Handling
+      - LLM_RESPONSE_MODE=streaming
+      - LLM_CHUNK_SIZE=50
+      
+      # TTS Configuration
+      - TTS_QUEUE_SIZE=3
+      - TTS_PRELOAD=true
+      
+      # Error Recovery
+      - AUTO_RECOVERY=true
+      - MAX_RECOVERY_ATTEMPTS=3
+      
+      # Call Cleanup and Disconnect Handling
+      - CALL_END_DELAY=500
+      - CLEANUP_ON_DISCONNECT=true
+      - FORCE_HANGUP_ON_ERROR=true
+      - MAX_CALL_DURATION=600
+      
+      # Debugging (optional)
+      # - LOG_LEVEL=debug
+      # - ENABLE_TRACING=true
+    volumes:
+      - ./ambient_sounds:/usr/src/app/ambient_sounds
+    ports:
+      - 5001:5001
+    networks:
+      - avr
+
+  avr-llm-proxy:
+    image: node:18-alpine
+    container_name: avr-llm-proxy
+    restart: always
+    environment:
+      - PORT=6017
+      - API_URL=${API_URL:-https://dev.clipp.app/api/bot/client/call/message/566895}
+      - API_METHOD=${API_METHOD:-POST}
+      - API_TOKEN=$API_TOKEN
+      #- CLIPP_PHONE=${CLIPP_PHONE:-593985059132}
+    volumes:
+      - ./avr-llm-proxy:/app
+      - shared-tmp:/tmp
+    working_dir: /app
+    ports:
+      - 6017:6017
+    command: sh -c "npm install && node server.js"
+    networks:
+      - avr
+
+  avr-asr-google-cloud-speech:
+    image: agentvoiceresponse/avr-asr-google-cloud-speech
+    platform: linux/x86_64
+    container_name: avr-asr-google-cloud-speech
+    restart: always
+    environment:
+      # Basic Configuration
+      - PORT=6001
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/google.json
+      - SPEECH_RECOGNITION_LANGUAGE=${SPEECH_LANGUAGE:-es-US}
+      
+      # Model Configuration - Enhanced for Telephony
+      - SPEECH_RECOGNITION_MODEL=telephony
+      - USE_ENHANCED_MODEL=true
+      - ENHANCED_MODEL=true
+      
+      # Voice Activity Detection (VAD) - Optimized for fluidity
+      - VAD_ENABLED=true
+      - VAD_TIMEOUT=300
+      - VAD_THRESHOLD=0.3
+      
+      # Results Configuration - For faster response
+      - PARTIAL_RESULTS=true
+      - FINAL_ONLY=false
+      - USE_INTERIM_RESULTS=true
+      - SPEECH_RECOGNITION_ALTERNATIVES=3
+      - SPEECH_RECOGNITION_MIN_ALTERNATIVE=0.80
+      - SPEECH_RECOGNITION_MAX_ALTERNATIVES=3
+      
+      # Timeout Configuration - Reduced for fluency
+      - MAX_SPEECH_TIMEOUT=3000
+      - INTERIM_RESULT_TIMEOUT=1000
+      - FINAL_RESULT_TIMEOUT=500
+      
+      # Audio Processing
+      - AUDIO_SAMPLE_RATE=8000
+      - AUDIO_CHANNELS=1
+      - AUDIO_ENCODING=LINEAR16
+      
+      # Advanced Features
+      - ADAPTATION_PHRASE_SET_CONTEXT=default
+      - AUTHENTICATION_ENABLED=true
+      - METADATA_ENABLED=true
+      
+      # Noise Suppression for better clarity
+      - NOISE_SUPPRESSION=true
+      - ECHO_CANCELLATION=true
+      - AUTO_GAIN_CONTROL=true
+      
+      # Language Model
+      - LANGUAGE_MODEL=enabled
+    volumes:
+      - ./google.json:/usr/src/app/google.json
+    networks:
+      - avr
+
+  avr-tts-google-cloud-tts:
+    image: agentvoiceresponse/avr-tts-google-cloud-tts
+    platform: linux/x86_64
+    container_name: avr-tts-google-cloud-tts
+    restart: always
+    environment:
+      # Basic Configuration
+      - PORT=6003
+      - GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/google.json
+      
+      # Voice Configuration - Optimized for clarity and fluency
+      - TEXT_TO_SPEECH_LANGUAGE=${TTS_LANGUAGE:-es-US}
+      - TEXT_TO_SPEECH_GENDER=${TTS_GENDER:-FEMALE}
+      - TEXT_TO_SPEECH_NAME=${TTS_NAME:-es-US-Neural2-A}
+      
+      # Speaking Rate - Natural and fluid
+      - TEXT_TO_SPEECH_SPEAKING_RATE=${TTS_SPEAKING_RATE:-1.0}
+      - TEXT_TO_SPEECH_PITCH=${TTS_PITCH:-0.0}
+      
+      # Audio Quality - High quality for phone calls
+      - AUDIO_ENCODING=MP3
+      - AUDIO_SAMPLE_RATE=24000
+      - AUDIO_GAIN=0.0
+      
+      # Prosody Configuration for naturalness
+      - TEXT_TO_SPEECH_PROSODY_VOLUME=+0dB
+      - TEXT_TO_SPEECH_PROSODY_RATE=medium
+      - TEXT_TO_SPEECH_PROSODY_PITCH=medium
+      
+      # Audio Profile - Optimized for phone
+      - AUDIO_PROFILE_TELEPHONY=HANDHELD_CLASS
+      
+      # Enable Streaming for faster response
+      - STREAMING_ENABLED=true
+      
+      # Cache for performance
+      - ENABLE_CACHING=true
+      - CACHE_SIZE=100
+    volumes:
+      - ./google.json:/usr/src/app/google.json
+    networks:
+      - avr
+  
+  avr-asterisk:
+    image: agentvoiceresponse/avr-asterisk
+    platform: linux/x86_64
+    container_name: avr-asterisk
+    restart: always
+    ports:
+      - 5038:5038
+      - 5060:5060
+      - 8088:8088
+      - 8089:8089
+      - 10000-10050:10000-10050/udp
+    volumes:
+      - ./asterisk/conf/manager.conf:/etc/asterisk/my_manager.conf
+      - ./asterisk/conf/pjsip.conf:/etc/asterisk/my_pjsip.conf
+      - ./asterisk/conf/extensions.conf:/etc/asterisk/my_extensions.conf
+      - ./asterisk/conf/queues.conf:/etc/asterisk/my_queues.conf
+      - ./asterisk/conf/ari.conf:/etc/asterisk/my_ari.conf
+      - ./asterisk/save-caller-id.sh:/etc/asterisk/save-caller-id.sh
+      - shared-tmp:/tmp
+    networks:
+      - avr
+
+  avr-ami:
+    image: agentvoiceresponse/avr-ami
+    platform: linux/x86_64
+    container_name: avr-ami
+    restart: always
+    environment:
+      - PORT=6006
+      - AMI_HOST=${AMI_HOST:-avr-asterisk}
+      - AMI_PORT=${AMI_PORT:-5038}
+      - AMI_USERNAME=${AMI_USERNAME:-avr}
+      - AMI_PASSWORD=${AMI_PASSWORD:-avr}
+    networks:
+      - avr
+
+  avr-channel-monitor:
+    image: docker:24-cli
+    container_name: avr-channel-monitor
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./asterisk/cleanup-on-hangup.sh:/cleanup-on-hangup.sh
+    command: sh /cleanup-on-hangup.sh
+    depends_on:
+      - avr-asterisk
+    networks:
+      - avr
+
+volumes:
+  shared-tmp:
+    driver: local
+
+networks:
+  avr:
+    name: avr
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+

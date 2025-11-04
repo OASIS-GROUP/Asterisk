@@ -1,0 +1,38 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Audio files (opcional, dependiendo de si quieres subir los archivos de audio)
+# ambient_sounds/*.mp3
+# ambient_sounds/*.wav
+# ambient_sounds/*.raw
+
+# Archivos de configuración sensibles
+google.json
+*.pem
+*.key
+
+# Backups
+*.backup
+*.bak
+
+# Archivos temporales
+*.tmp
+*.temp
+*.zip
+
