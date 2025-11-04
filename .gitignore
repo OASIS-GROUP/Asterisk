@@ -23,7 +23,7 @@ Thumbs.db
 # ambient_sounds/*.raw
 
 # Archivos de configuración sensibles
-google.json
+# google.json
 *.pem
 *.key
 
