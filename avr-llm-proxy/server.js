@@ -4,7 +4,8 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const PORT = process.env.PORT || 6017;
-const API_URL = process.env.API_URL || 'https://dev.clipp.app/api/bot/client/call/message/566895';
+// const API_URL = process.env.API_URL || 'https://dev.clipp.app/api/bot/client/call/message/566895';  //DESARROLLO
+const API_URL = process.env.API_URL || 'https://api.clipp.app/api/bot/client/call/message/566897';   //PRODUCCION
 const API_METHOD = process.env.API_METHOD || 'POST';
 const API_TOKEN = process.env.API_TOKEN || '';
 
