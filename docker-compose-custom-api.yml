@@ -78,7 +78,7 @@ services:
     restart: always
     environment:
       - PORT=6017
-      - API_URL=${API_URL:-https://dev.clipp.app/api/bot/client/call/message/566895}
+      - API_URL=${API_URL:-https://api.clipp.app/api/bot/client/call/message/566897}
       - API_METHOD=${API_METHOD:-POST}
       - API_TOKEN=$API_TOKEN
       #- CLIPP_PHONE=${CLIPP_PHONE:-593985059132}
