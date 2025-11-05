@@ -26,8 +26,8 @@ services:
       - LLM_TIMEOUT=10000
       
       # Ambient Noise - Better audio quality
-      #- AMBIENT_NOISE_FILE=ambient_sounds/office_background.raw
-      #- AMBIENT_NOISE_LEVEL=0.50
+      - AMBIENT_NOISE_FILE=ambient_sounds/office_background.raw
+      - AMBIENT_NOISE_LEVEL=0.20
       
       # Audio Processing
       - AUDIO_CHUNK_SIZE=1600
