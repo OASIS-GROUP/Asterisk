@@ -210,7 +210,7 @@ services:
       - ./asterisk/conf/ari.conf:/etc/asterisk/my_ari.conf
       - ./asterisk/save-caller-id.sh:/etc/asterisk/save-caller-id.sh
       - shared-tmp:/tmp
-      - ./asterisk/ssl:/etc/asterisk/ssl:ro
+      #- ./asterisk/ssl:/etc/asterisk/ssl:ro
     networks:
       - avr
 
